@@ -1,19 +1,14 @@
-const express = require("express");
-const router = express.Router();
 const Restaurant = require("../models/Restaurant");
 
-// Get all restaurants (with optional filters)
-router.get("/", async (req, res) => {
+exports.getRestaurants = async (req, res, next) => {
   try {
     const { category, search } = req.query;
-    let query = {};
+    const query = {};
 
-    // Apply category filter if provided and not "all"
     if (category && category.toLowerCase() !== "all") {
       query.category = category.toLowerCase();
     }
 
-    // Apply search filter (name or cuisine matching)
     if (search) {
       query.$or = [
         { name: { $regex: search, $options: "i" } },
@@ -25,12 +20,11 @@ router.get("/", async (req, res) => {
     res.json(restaurants);
   } catch (error) {
     console.error("Fetch restaurants error:", error);
-    res.status(500).json({ error: "Server error while fetching restaurants" });
+    next(error);
   }
-});
+};
 
-// Get single restaurant by ID
-router.get("/:id", async (req, res) => {
+exports.getRestaurantById = async (req, res, next) => {
   try {
     const restaurant = await Restaurant.findById(req.params.id);
     if (!restaurant) {
@@ -39,10 +33,6 @@ router.get("/:id", async (req, res) => {
     res.json(restaurant);
   } catch (error) {
     console.error("Fetch restaurant by ID error:", error);
-    res
-      .status(500)
-      .json({ error: "Server error while fetching restaurant details" });
+    next(error);
   }
-});
-
-module.exports = router;
+};

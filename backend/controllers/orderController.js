@@ -1,10 +1,6 @@
-const express = require("express");
-const router = express.Router();
 const Order = require("../models/Order");
-const authMiddleware = require("../middleware/auth");
 
-// Create a new order (Protected)
-router.post("/", authMiddleware, async (req, res) => {
+exports.createOrder = async (req, res, next) => {
   try {
     const {
       restaurantId,
@@ -37,12 +33,11 @@ router.post("/", authMiddleware, async (req, res) => {
     res.status(201).json(order);
   } catch (error) {
     console.error("Create order error:", error);
-    res.status(500).json({ error: "Server error while placing order" });
+    next(error);
   }
-});
+};
 
-// Get active user's orders (Protected)
-router.get("/", authMiddleware, async (req, res) => {
+exports.getUserOrders = async (req, res, next) => {
   try {
     const orders = await Order.find({ user: req.user.id })
       .populate("restaurant", "name image")
@@ -50,12 +45,11 @@ router.get("/", authMiddleware, async (req, res) => {
     res.json(orders);
   } catch (error) {
     console.error("Fetch user orders error:", error);
-    res.status(500).json({ error: "Server error while fetching orders" });
+    next(error);
   }
-});
+};
 
-// Get a specific order by ID (Protected)
-router.get("/:id", authMiddleware, async (req, res) => {
+exports.getOrderById = async (req, res, next) => {
   try {
     const order = await Order.findById(req.params.id).populate(
       "restaurant",
@@ -66,7 +60,6 @@ router.get("/:id", authMiddleware, async (req, res) => {
       return res.status(404).json({ error: "Order not found" });
     }
 
-    // Ensure the order belongs to the requesting user
     if (order.user.toString() !== req.user.id) {
       return res.status(403).json({ error: "Unauthorized to view this order" });
     }
@@ -74,19 +67,21 @@ router.get("/:id", authMiddleware, async (req, res) => {
     res.json(order);
   } catch (error) {
     console.error("Fetch order by ID error:", error);
-    res.status(500).json({ error: "Server error while fetching order status" });
+    next(error);
   }
-});
+};
 
-// Update order status (Used by frontend to simulate order tracking progression)
-router.put("/:id/status", async (req, res) => {
+exports.updateOrderStatus = async (req, res, next) => {
   try {
     const { status } = req.body;
-    if (
-      !["Ordered", "Preparing", "Out for Delivery", "Delivered"].includes(
-        status,
-      )
-    ) {
+    const validStatuses = [
+      "Ordered",
+      "Preparing",
+      "Out for Delivery",
+      "Delivered",
+    ];
+
+    if (!validStatuses.includes(status)) {
       return res.status(400).json({ error: "Invalid order status value" });
     }
 
@@ -103,8 +98,6 @@ router.put("/:id/status", async (req, res) => {
     res.json(order);
   } catch (error) {
     console.error("Update order status error:", error);
-    res.status(500).json({ error: "Server error while updating order status" });
+    next(error);
   }
-});
-
-module.exports = router;
+};
