@@ -1,4 +1,4 @@
-const mongoose = require('mongoose')
+const mongoose = require("mongoose");
 
 const MenuItemSchema = new mongoose.Schema({
   name: { type: String, required: true },
@@ -10,8 +10,8 @@ const MenuItemSchema = new mongoose.Schema({
   isPopular: { type: Boolean, default: false },
   calories: { type: Number, default: 250 },
   spicyLevel: { type: Number, default: 0 }, // 0: Mild, 1: Medium, 2: Spicy, 3: Extra Hot
-  tag: { type: String, default: '' } // Chef's Special, Trending, New, etc.
-})
+  tag: { type: String, default: "" }, // Chef's Special, Trending, New, etc.
+});
 
 const RestaurantSchema = new mongoose.Schema({
   name: { type: String, required: true },
@@ -23,7 +23,7 @@ const RestaurantSchema = new mongoose.Schema({
   cuisine: { type: String, required: true }, // e.g. "Italian, Pizza"
   category: { type: String, required: true }, // pizza, burgers, sushi, desserts, asian
   isFeatured: { type: Boolean, default: false },
-  menu: [MenuItemSchema]
-})
+  menu: [MenuItemSchema],
+});
 
-module.exports = mongoose.model('Restaurant', RestaurantSchema)
+module.exports = mongoose.model("Restaurant", RestaurantSchema);

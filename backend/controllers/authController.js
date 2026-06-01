@@ -1,9 +1,7 @@
-const router = require("express").Router();
 const User = require("../models/User");
 const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
 
-// Helper to generate JWT
 const generateToken = (user) => {
   return jwt.sign(
     { id: user._id, email: user.email },
@@ -12,8 +10,7 @@ const generateToken = (user) => {
   );
 };
 
-// Register
-router.post("/register", async (req, res) => {
+exports.register = async (req, res, next) => {
   try {
     const { email, password } = req.body;
 
@@ -27,7 +24,6 @@ router.post("/register", async (req, res) => {
         .json({ error: "Password must be at least 6 characters long" });
     }
 
-    // Check if email already exists
     const existingUser = await User.findOne({ email: email.toLowerCase() });
     if (existingUser) {
       return res.status(400).json({ error: "Email is already registered" });
@@ -50,12 +46,11 @@ router.post("/register", async (req, res) => {
     });
   } catch (error) {
     console.error("Registration error:", error);
-    res.status(500).json({ error: "Server error during registration" });
+    next(error);
   }
-});
+};
 
-// Login
-router.post("/login", async (req, res) => {
+exports.login = async (req, res, next) => {
   try {
     const { email, password } = req.body;
 
@@ -86,8 +81,6 @@ router.post("/login", async (req, res) => {
     });
   } catch (error) {
     console.error("Login error:", error);
-    res.status(500).json({ error: "Server error during login" });
+    next(error);
   }
-});
-
-module.exports = router;
+};
