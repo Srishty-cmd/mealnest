@@ -12,26 +12,14 @@ const generateToken = (user) => {
 
 exports.register = async (req, res, next) => {
   try {
-    const { email, password } = req.body;
+    const { name, email, phone, password } = req.body;
 
-    if (!email || !password) {
-      return res.status(400).json({ error: "Email and password are required" });
-    }
-
-    if (password.length < 6) {
-      return res
-        .status(400)
-        .json({ error: "Password must be at least 6 characters long" });
-    }
-
-    const existingUser = await User.findOne({ email: email.toLowerCase() });
-    if (existingUser) {
-      return res.status(400).json({ error: "Email is already registered" });
-    }
-
+    // All validation is handled by express-validator middleware
     const hash = await bcrypt.hash(password, 10);
     const user = await User.create({
+      name: name.trim(),
       email: email.toLowerCase(),
+      phone,
       password: hash,
     });
 
@@ -41,7 +29,9 @@ exports.register = async (req, res, next) => {
       token,
       user: {
         id: user._id,
+        name: user.name,
         email: user.email,
+        phone: user.phone,
       },
     });
   } catch (error) {
@@ -54,10 +44,7 @@ exports.login = async (req, res, next) => {
   try {
     const { email, password } = req.body;
 
-    if (!email || !password) {
-      return res.status(400).json({ error: "Email and password are required" });
-    }
-
+    // Email format validation is handled by express-validator middleware
     const user = await User.findOne({ email: email.toLowerCase() });
     if (!user) {
       return res
@@ -76,7 +63,9 @@ exports.login = async (req, res, next) => {
       token,
       user: {
         id: user._id,
+        name: user.name,
         email: user.email,
+        phone: user.phone,
       },
     });
   } catch (error) {

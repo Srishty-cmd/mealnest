@@ -1,54 +1,73 @@
-import { useState, useEffect } from 'react'
-import { useNavigate } from 'react-router-dom'
-import { useApp } from '../context/AppContext'
+import { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
+import { useApp } from "../context/AppContext";
 
 export default function Login() {
-  const { login, register, authLoading, authError, user, theme, toggleTheme } = useApp()
-  const [isRegister, setIsRegister] = useState(false)
-  const [email, setEmail] = useState('')
-  const [password, setPassword] = useState('')
-  const [validationError, setValidationError] = useState('')
-  const navigate = useNavigate()
+  const { login, register, authLoading, authError, user, theme, toggleTheme } =
+    useApp();
+  const [isRegister, setIsRegister] = useState(false);
+  const [name, setName] = useState("");
+  const [email, setEmail] = useState("");
+  const [phone, setPhone] = useState("");
+  const [password, setPassword] = useState("");
+  const [validationError, setValidationError] = useState("");
+  const navigate = useNavigate();
 
   // Redirect if user is already logged in
   useEffect(() => {
     if (user) {
-      navigate('/home')
+      navigate("/home");
     }
-  }, [user, navigate])
+  }, [user, navigate]);
 
   const handleSubmit = async (e) => {
-    e.preventDefault()
-    setValidationError('')
+    e.preventDefault();
+    setValidationError("");
 
-    if (!email || !password) {
-      setValidationError('Please fill in all fields.')
-      return
+    if (isRegister) {
+      if (!name || !email || !phone || !password) {
+        setValidationError("Please fill in all fields.");
+        return;
+      }
+
+      if (name.trim().length < 2) {
+        setValidationError("Name must be at least 2 characters.");
+        return;
+      }
+
+      if (!/^[0-9]{10}$/.test(phone)) {
+        setValidationError("Phone number must be 10 digits.");
+        return;
+      }
+    } else {
+      if (!email || !password) {
+        setValidationError("Please fill in all fields.");
+        return;
+      }
     }
 
     if (password.length < 6) {
-      setValidationError('Password must be at least 6 characters.')
-      return
+      setValidationError("Password must be at least 6 characters.");
+      return;
     }
 
-    let success = false
+    let success = false;
     if (isRegister) {
-      success = await register(email, password)
+      success = await register(name, email, phone, password);
     } else {
-      success = await login(email, password)
+      success = await login(email, password);
     }
 
     if (success) {
-      navigate('/home')
+      navigate("/home");
     }
-  }
+  };
 
   return (
     <div className="min-h-screen w-full flex items-center justify-center bg-gradient-to-br from-orange-50 via-rose-50 to-amber-50 dark:from-slate-950 dark:via-slate-900 dark:to-slate-950 p-4 md:p-6 font-sans transition-colors duration-300 relative selection:bg-rose-500 selection:text-white">
-      
       {/* Back to Storefront Link */}
       <button
-        onClick={() => navigate('/')}
+        onClick={() => navigate("/")}
         className="absolute top-6 left-6 px-4 py-2 bg-white/80 dark:bg-slate-800/80 backdrop-blur border border-slate-200 dark:border-slate-700 rounded-2xl shadow-sm text-xs font-bold cursor-pointer hover:scale-103 transition text-slate-650 dark:text-slate-400"
         title="Back to Storefront"
       >
@@ -61,31 +80,28 @@ export default function Login() {
         className="absolute top-6 right-6 p-2.5 bg-white/80 dark:bg-slate-800/80 backdrop-blur border border-slate-200 dark:border-slate-700 rounded-full shadow-md text-sm cursor-pointer hover:scale-105 active:scale-95 transition"
         title="Toggle Theme"
       >
-        {theme === 'light' ? '🌙' : '☀️'}
+        {theme === "light" ? "🌙" : "☀️"}
       </button>
 
       {/* Glassmorphic Auth Panel */}
       <div className="w-full max-w-md bg-white/70 dark:bg-slate-900/60 backdrop-blur-xl rounded-3xl shadow-2xl p-8 border border-white/20 dark:border-slate-800/50 animate-scale-up space-y-6">
-        
         <div className="text-center space-y-2">
           <div className="w-12 h-12 rounded-full bg-rose-500 flex items-center justify-center text-white text-xl font-bold shadow-lg shadow-rose-500/20 mx-auto">
             🪺
           </div>
           <div>
             <h2 className="text-2xl font-black text-slate-850 dark:text-slate-100 tracking-tight leading-none">
-              {isRegister ? 'Join MealNest' : 'Access Your Nest'}
+              {isRegister ? "Join MealNest" : "Access Your Nest"}
             </h2>
             <p className="text-slate-400 dark:text-slate-500 text-xs font-semibold mt-2 leading-relaxed">
-              {isRegister 
-                ? 'Register with your email to start ordering delicacies.' 
-                : 'Sign in to access your customized dashboard and cart.'
-              }
+              {isRegister
+                ? "Register with your email to start ordering delicacies."
+                : "Sign in to access your customized dashboard and cart."}
             </p>
           </div>
         </div>
 
         <form onSubmit={handleSubmit} className="space-y-4">
-          
           {/* Errors */}
           {(validationError || authError) && (
             <div className="bg-rose-50 dark:bg-rose-950/20 border-l-4 border-rose-500 p-4 rounded-r-xl text-rose-700 dark:text-rose-350 text-xs font-bold shadow-sm animate-pulse flex items-center">
@@ -94,11 +110,37 @@ export default function Login() {
             </div>
           )}
 
+          {/* Name - Register Only */}
+          {isRegister && (
+            <div className="space-y-1.5">
+              <label className="text-[10px] font-black text-slate-400 dark:text-slate-500 tracking-wide uppercase">
+                Full Name
+              </label>
+              <div className="relative">
+                <span className="absolute inset-y-0 left-0 pl-3.5 flex items-center text-slate-400 dark:text-slate-600 text-xs">
+                  👤
+                </span>
+                <input
+                  type="text"
+                  value={name}
+                  onChange={(e) => setName(e.target.value)}
+                  placeholder="John Doe"
+                  className="w-full pl-9 pr-4 py-2.5 bg-slate-50 dark:bg-slate-950/60 border border-slate-200 dark:border-slate-850 rounded-2xl focus:outline-none focus:ring-2 focus:ring-rose-500/10 focus:border-rose-500 text-slate-800 dark:text-slate-100 text-xs font-semibold placeholder-slate-400 dark:placeholder-slate-700 transition"
+                  disabled={authLoading}
+                />
+              </div>
+            </div>
+          )}
+
           {/* Email */}
           <div className="space-y-1.5">
-            <label className="text-[10px] font-black text-slate-400 dark:text-slate-500 tracking-wide uppercase">Email Address</label>
+            <label className="text-[10px] font-black text-slate-400 dark:text-slate-500 tracking-wide uppercase">
+              Email Address
+            </label>
             <div className="relative">
-              <span className="absolute inset-y-0 left-0 pl-3.5 flex items-center text-slate-400 dark:text-slate-600 text-xs">✉️</span>
+              <span className="absolute inset-y-0 left-0 pl-3.5 flex items-center text-slate-400 dark:text-slate-600 text-xs">
+                ✉️
+              </span>
               <input
                 type="email"
                 value={email}
@@ -110,16 +152,49 @@ export default function Login() {
             </div>
           </div>
 
+          {/* Phone - Register Only */}
+          {isRegister && (
+            <div className="space-y-1.5">
+              <label className="text-[10px] font-black text-slate-400 dark:text-slate-500 tracking-wide uppercase">
+                Phone Number
+              </label>
+              <div className="relative">
+                <span className="absolute inset-y-0 left-0 pl-3.5 flex items-center text-slate-400 dark:text-slate-600 text-xs">
+                  📱
+                </span>
+                <input
+                  type="tel"
+                  value={phone}
+                  onChange={(e) =>
+                    setPhone(e.target.value.replace(/\D/g, "").slice(0, 10))
+                  }
+                  placeholder="9876543210"
+                  className="w-full pl-9 pr-4 py-2.5 bg-slate-50 dark:bg-slate-950/60 border border-slate-200 dark:border-slate-850 rounded-2xl focus:outline-none focus:ring-2 focus:ring-rose-500/10 focus:border-rose-500 text-slate-800 dark:text-slate-100 text-xs font-semibold placeholder-slate-400 dark:placeholder-slate-700 transition"
+                  disabled={authLoading}
+                />
+              </div>
+            </div>
+          )}
+
           {/* Password */}
           <div className="space-y-1.5">
             <div className="flex justify-between items-center">
-              <label className="text-[10px] font-black text-slate-400 dark:text-slate-500 tracking-wide uppercase">Password</label>
+              <label className="text-[10px] font-black text-slate-400 dark:text-slate-500 tracking-wide uppercase">
+                Password
+              </label>
               {!isRegister && (
-                <button type="button" className="text-[10px] text-rose-500 font-extrabold hover:underline">Forgot?</button>
+                <button
+                  type="button"
+                  className="text-[10px] text-rose-500 font-extrabold hover:underline"
+                >
+                  Forgot?
+                </button>
               )}
             </div>
             <div className="relative">
-              <span className="absolute inset-y-0 left-0 pl-3.5 flex items-center text-slate-400 dark:text-slate-600 text-xs">🔒</span>
+              <span className="absolute inset-y-0 left-0 pl-3.5 flex items-center text-slate-400 dark:text-slate-600 text-xs">
+                🔒
+              </span>
               <input
                 type="password"
                 value={password}
@@ -143,29 +218,31 @@ export default function Login() {
                 <span>Processing...</span>
               </>
             ) : (
-              <span>{isRegister ? 'Create Account' : 'Sign In'}</span>
+              <span>{isRegister ? "Create Account" : "Sign In"}</span>
             )}
           </button>
-
         </form>
 
         {/* Toggle */}
         <div className="text-center text-xs font-semibold text-slate-500 dark:text-slate-455 border-t border-slate-150 dark:border-slate-800 pt-4">
-          {isRegister ? 'Already have an account?' : "New to MealNest?"}{' '}
+          {isRegister ? "Already have an account?" : "New to MealNest?"}{" "}
           <button
             type="button"
             onClick={() => {
-              setIsRegister(!isRegister)
-              setValidationError('')
+              setIsRegister(!isRegister);
+              setValidationError("");
+              setName("");
+              setEmail("");
+              setPhone("");
+              setPassword("");
             }}
             className="text-rose-500 font-black hover:underline cursor-pointer"
             disabled={authLoading}
           >
-            {isRegister ? 'Sign in' : 'Create an account'}
+            {isRegister ? "Sign in" : "Create an account"}
           </button>
         </div>
-
       </div>
     </div>
-  )
+  );
 }

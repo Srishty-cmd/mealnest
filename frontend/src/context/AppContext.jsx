@@ -1,240 +1,284 @@
-import { createContext, useContext, useState, useEffect } from 'react'
-import axios from 'axios'
+import { createContext, useContext, useState, useEffect } from "react";
+import axios from "axios";
 
-const AppContext = createContext()
+const AppContext = createContext();
 
-export const useApp = () => useContext(AppContext)
+export const useApp = () => useContext(AppContext);
 
 export const AppProvider = ({ children }) => {
   // Base API URL config
-  const API_URL = 'http://localhost:5000/api'
+  const API_URL = "http://localhost:5000/api";
 
   // Auth State
   const [user, setUser] = useState(() => {
-    const savedUser = localStorage.getItem('user')
-    return savedUser ? JSON.parse(savedUser) : null
-  })
+    const savedUser = localStorage.getItem("user");
+    return savedUser ? JSON.parse(savedUser) : null;
+  });
   const [token, setToken] = useState(() => {
-    const savedToken = localStorage.getItem('token')
-    return savedToken || ''
-  })
-  const [authLoading, setAuthLoading] = useState(false)
-  const [authError, setAuthError] = useState('')
+    const savedToken = localStorage.getItem("token");
+    return savedToken || "";
+  });
+  const [authLoading, setAuthLoading] = useState(false);
+  const [authError, setAuthError] = useState("");
 
   // Cart State
   const [cart, setCart] = useState(() => {
-    const savedCart = localStorage.getItem('cart')
-    return savedCart ? JSON.parse(savedCart) : []
-  })
+    const savedCart = localStorage.getItem("cart");
+    return savedCart ? JSON.parse(savedCart) : [];
+  });
   const [cartRestaurant, setCartRestaurant] = useState(() => {
-    const savedRestaurant = localStorage.getItem('cartRestaurant')
-    return savedRestaurant ? JSON.parse(savedRestaurant) : null // Stores { id, name }
-  })
-  const [cartShake, setCartShake] = useState(false)
+    const savedRestaurant = localStorage.getItem("cartRestaurant");
+    return savedRestaurant ? JSON.parse(savedRestaurant) : null; // Stores { id, name }
+  });
+  const [cartShake, setCartShake] = useState(false);
 
   // Filtering & Sorting State
-  const [vegOnly, setVegOnly] = useState(false)
-  const [sortBy, setSortBy] = useState('default') // default | rating | time | costLow | costHigh
+  const [vegOnly, setVegOnly] = useState(false);
+  const [sortBy, setSortBy] = useState("default"); // default | rating | time | costLow | costHigh
 
   // Theme State
   const [theme, setTheme] = useState(() => {
-    const savedTheme = localStorage.getItem('theme')
-    return savedTheme || 'light'
-  })
+    const savedTheme = localStorage.getItem("theme");
+    return savedTheme || "light";
+  });
 
   // Order & History State
-  const [activeOrder, setActiveOrder] = useState(null)
-  const [ordersHistory, setOrdersHistory] = useState([])
+  const [activeOrder, setActiveOrder] = useState(null);
+  const [ordersHistory, setOrdersHistory] = useState([]);
 
   // Setup Axios Auth headers whenever token changes
   useEffect(() => {
     if (token) {
-      axios.defaults.headers.common['authorization'] = `Bearer ${token}`
-      localStorage.setItem('token', token)
+      axios.defaults.headers.common["authorization"] = `Bearer ${token}`;
+      localStorage.setItem("token", token);
     } else {
-      delete axios.defaults.headers.common['authorization']
-      localStorage.removeItem('token')
+      delete axios.defaults.headers.common["authorization"];
+      localStorage.removeItem("token");
     }
-  }, [token])
+  }, [token]);
 
   // Sync Cart to LocalStorage
   useEffect(() => {
-    localStorage.setItem('cart', JSON.stringify(cart))
+    localStorage.setItem("cart", JSON.stringify(cart));
     if (cart.length === 0) {
-      localStorage.removeItem('cartRestaurant')
-      setCartRestaurant(null)
+      localStorage.removeItem("cartRestaurant");
+      setCartRestaurant(null);
     } else if (cartRestaurant) {
-      localStorage.setItem('cartRestaurant', JSON.stringify(cartRestaurant))
+      localStorage.setItem("cartRestaurant", JSON.stringify(cartRestaurant));
     }
-  }, [cart, cartRestaurant])
+  }, [cart, cartRestaurant]);
 
   // Sync Theme to HTML root class prefix
   useEffect(() => {
-    const root = window.document.documentElement
-    if (theme === 'dark') {
-      root.classList.add('dark')
+    const root = window.document.documentElement;
+    if (theme === "dark") {
+      root.classList.add("dark");
     } else {
-      root.classList.remove('dark')
+      root.classList.remove("dark");
     }
-    localStorage.setItem('theme', theme)
-  }, [theme])
+    localStorage.setItem("theme", theme);
+  }, [theme]);
 
   // Theme Actions
   const toggleTheme = () => {
-    setTheme(prev => (prev === 'light' ? 'dark' : 'light'))
-  }
+    setTheme((prev) => (prev === "light" ? "dark" : "light"));
+  };
 
   // Authentication Actions
   const login = async (email, password) => {
-    setAuthLoading(true)
-    setAuthError('')
+    setAuthLoading(true);
+    setAuthError("");
     try {
-      const response = await axios.post(`${API_URL}/auth/login`, { email, password })
-      const { token, user: userData } = response.data
-      
-      setUser(userData)
-      setToken(token)
-      localStorage.setItem('user', JSON.stringify(userData))
-      setAuthLoading(false)
-      return true
-    } catch (error) {
-      setAuthLoading(false)
-      const msg = error.response?.data?.error || 'Login failed. Please try again.'
-      setAuthError(msg)
-      return false
-    }
-  }
+      const response = await axios.post(`${API_URL}/auth/login`, {
+        email,
+        password,
+      });
+      const { token, user: userData } = response.data;
 
-  const register = async (email, password) => {
-    setAuthLoading(true)
-    setAuthError('')
-    try {
-      const response = await axios.post(`${API_URL}/auth/register`, { email, password })
-      const { token, user: userData } = response.data
-      
-      setUser(userData)
-      setToken(token)
-      localStorage.setItem('user', JSON.stringify(userData))
-      setAuthLoading(false)
-      return true
+      setUser(userData);
+      setToken(token);
+      localStorage.setItem("user", JSON.stringify(userData));
+      setAuthLoading(false);
+      return true;
     } catch (error) {
-      setAuthLoading(false)
-      const msg = error.response?.data?.error || 'Registration failed. Try again.'
-      setAuthError(msg)
-      return false
+      setAuthLoading(false);
+      const msg =
+        error.response?.data?.error || "Login failed. Please try again.";
+      setAuthError(msg);
+      return false;
     }
-  }
+  };
+
+  const register = async (name, email, phone, password) => {
+    setAuthLoading(true);
+    setAuthError("");
+    try {
+      const response = await axios.post(`${API_URL}/auth/register`, {
+        name,
+        email,
+        phone,
+        password,
+      });
+      const { token, user: userData } = response.data;
+
+      setUser(userData);
+      setToken(token);
+      localStorage.setItem("user", JSON.stringify(userData));
+      setAuthLoading(false);
+      return true;
+    } catch (error) {
+      setAuthLoading(false);
+      const msg =
+        error.response?.data?.error || "Registration failed. Try again.";
+      setAuthError(msg);
+      return false;
+    }
+  };
 
   const logout = () => {
-    setUser(null)
-    setToken('')
-    localStorage.removeItem('user')
-    localStorage.removeItem('token')
-    clearCart()
-    setActiveOrder(null)
-  }
+    setUser(null);
+    setToken("");
+    localStorage.removeItem("user");
+    localStorage.removeItem("token");
+    clearCart();
+    setActiveOrder(null);
+  };
 
   // Cart Actions
   const triggerCartShake = () => {
-    setCartShake(true)
-    setTimeout(() => setCartShake(false), 450)
-  }
+    setCartShake(true);
+    setTimeout(() => setCartShake(false), 450);
+  };
 
   const addToCart = (item, restaurant) => {
     // If cart has items and they are from a different restaurant
-    if (cartRestaurant && cartRestaurant.id !== restaurant._id && cartRestaurant.id !== restaurant.id) {
+    if (
+      cartRestaurant &&
+      cartRestaurant.id !== restaurant._id &&
+      cartRestaurant.id !== restaurant.id
+    ) {
       const confirmClear = window.confirm(
-        `Your cart contains items from "${cartRestaurant.name}". Clear cart to add items from "${restaurant.name}"?`
-      )
+        `Your cart contains items from "${cartRestaurant.name}". Clear cart to add items from "${restaurant.name}"?`,
+      );
       if (confirmClear) {
-        setCart([{ itemId: item._id, name: item.name, price: item.price, quantity: 1, isVeg: item.isVeg }])
-        setCartRestaurant({ id: restaurant._id || restaurant.id, name: restaurant.name })
-        triggerCartShake()
+        setCart([
+          {
+            itemId: item._id,
+            name: item.name,
+            price: item.price,
+            quantity: 1,
+            isVeg: item.isVeg,
+          },
+        ]);
+        setCartRestaurant({
+          id: restaurant._id || restaurant.id,
+          name: restaurant.name,
+        });
+        triggerCartShake();
       }
-      return
+      return;
     }
 
     if (!cartRestaurant) {
-      setCartRestaurant({ id: restaurant._id || restaurant.id, name: restaurant.name })
+      setCartRestaurant({
+        id: restaurant._id || restaurant.id,
+        name: restaurant.name,
+      });
     }
 
-    setCart(prevCart => {
-      const existingItem = prevCart.find(cartItem => cartItem.itemId === item._id)
+    setCart((prevCart) => {
+      const existingItem = prevCart.find(
+        (cartItem) => cartItem.itemId === item._id,
+      );
       if (existingItem) {
-        return prevCart.map(cartItem =>
+        return prevCart.map((cartItem) =>
           cartItem.itemId === item._id
             ? { ...cartItem, quantity: cartItem.quantity + 1 }
-            : cartItem
-        )
+            : cartItem,
+        );
       }
-      return [...prevCart, { itemId: item._id, name: item.name, price: item.price, quantity: 1, isVeg: item.isVeg }]
-    })
-    
-    triggerCartShake()
-  }
+      return [
+        ...prevCart,
+        {
+          itemId: item._id,
+          name: item.name,
+          price: item.price,
+          quantity: 1,
+          isVeg: item.isVeg,
+        },
+      ];
+    });
+
+    triggerCartShake();
+  };
 
   const removeFromCart = (itemId) => {
-    setCart(prevCart => prevCart.filter(item => item.itemId !== itemId))
-  }
+    setCart((prevCart) => prevCart.filter((item) => item.itemId !== itemId));
+  };
 
   const updateQuantity = (itemId, change) => {
-    setCart(prevCart => {
-      return prevCart.map(item => {
-        if (item.itemId === itemId) {
-          const newQty = item.quantity + change
-          if (change > 0) triggerCartShake()
-          return newQty > 0 ? { ...item, quantity: newQty } : null
-        }
-        return item
-      }).filter(Boolean)
-    })
-  }
+    setCart((prevCart) => {
+      return prevCart
+        .map((item) => {
+          if (item.itemId === itemId) {
+            const newQty = item.quantity + change;
+            if (change > 0) triggerCartShake();
+            return newQty > 0 ? { ...item, quantity: newQty } : null;
+          }
+          return item;
+        })
+        .filter(Boolean);
+    });
+  };
 
   const clearCart = () => {
-    setCart([])
-    setCartRestaurant(null)
-    localStorage.removeItem('cart')
-    localStorage.removeItem('cartRestaurant')
-  }
+    setCart([]);
+    setCartRestaurant(null);
+    localStorage.removeItem("cart");
+    localStorage.removeItem("cartRestaurant");
+  };
 
   // One-click Re-order of past order items
   const reorderPastItems = (items, restaurant) => {
-    clearCart()
-    
-    const loadedCart = items.map(item => ({
+    clearCart();
+
+    const loadedCart = items.map((item) => ({
       itemId: item.itemId,
       name: item.name,
       price: item.price,
       quantity: item.quantity,
-      isVeg: item.isVeg !== undefined ? item.isVeg : true
-    }))
+      isVeg: item.isVeg !== undefined ? item.isVeg : true,
+    }));
 
-    setCart(loadedCart)
-    setCartRestaurant({ id: restaurant._id || restaurant.id, name: restaurant.name })
-    triggerCartShake()
-  }
+    setCart(loadedCart);
+    setCartRestaurant({
+      id: restaurant._id || restaurant.id,
+      name: restaurant.name,
+    });
+    triggerCartShake();
+  };
 
   // Calculations
   const getCartSubtotal = () => {
-    return cart.reduce((sum, item) => sum + (item.price * item.quantity), 0)
-  }
+    return cart.reduce((sum, item) => sum + item.price * item.quantity, 0);
+  };
 
   const getDeliveryFee = () => {
-    return getCartSubtotal() > 199 ? 0 : (getCartSubtotal() > 0 ? 30 : 0)
-  }
+    return getCartSubtotal() > 199 ? 0 : getCartSubtotal() > 0 ? 30 : 0;
+  };
 
   const getTax = () => {
-    return Math.round(getCartSubtotal() * 0.18) // 18% GST
-  }
+    return Math.round(getCartSubtotal() * 0.18); // 18% GST
+  };
 
   const getCartTotal = () => {
-    return getCartSubtotal() + getDeliveryFee() + getTax()
-  }
+    return getCartSubtotal() + getDeliveryFee() + getTax();
+  };
 
   // Orders API
   const placeOrder = async (address, paymentMethod) => {
     try {
-      if (!user) throw new Error('Must be logged in to order')
+      if (!user) throw new Error("Must be logged in to order");
       const orderPayload = {
         restaurantId: cartRestaurant.id,
         items: cart,
@@ -243,89 +287,93 @@ export const AppProvider = ({ children }) => {
         tax: getTax(),
         total: getCartTotal(),
         address,
-        paymentMethod
-      }
+        paymentMethod,
+      };
 
-      const response = await axios.post(`${API_URL}/orders`, orderPayload)
-      const newOrder = response.data
-      setActiveOrder(newOrder)
-      clearCart()
-      return newOrder
+      const response = await axios.post(`${API_URL}/orders`, orderPayload);
+      const newOrder = response.data;
+      setActiveOrder(newOrder);
+      clearCart();
+      return newOrder;
     } catch (error) {
-      console.error('Failed placing order:', error)
-      throw error
+      console.error("Failed placing order:", error);
+      throw error;
     }
-  }
+  };
 
   const fetchOrders = async () => {
     try {
-      const response = await axios.get(`${API_URL}/orders`)
-      setOrdersHistory(response.data)
+      const response = await axios.get(`${API_URL}/orders`);
+      setOrdersHistory(response.data);
     } catch (error) {
-      console.error('Failed fetching order history:', error)
+      console.error("Failed fetching order history:", error);
     }
-  }
+  };
 
   const fetchOrderById = async (orderId) => {
     try {
-      const response = await axios.get(`${API_URL}/orders/${orderId}`)
-      return response.data
+      const response = await axios.get(`${API_URL}/orders/${orderId}`);
+      return response.data;
     } catch (error) {
-      console.error('Failed fetching single order status:', error)
-      throw error
+      console.error("Failed fetching single order status:", error);
+      throw error;
     }
-  }
+  };
 
   const updateOrderStatusSimulated = async (orderId, status) => {
     try {
-      const response = await axios.put(`${API_URL}/orders/${orderId}/status`, { status })
+      const response = await axios.put(`${API_URL}/orders/${orderId}/status`, {
+        status,
+      });
       if (activeOrder && activeOrder._id === orderId) {
-        setActiveOrder(response.data)
+        setActiveOrder(response.data);
       }
-      return response.data
+      return response.data;
     } catch (error) {
-      console.error('Failed updating simulated order status:', error)
+      console.error("Failed updating simulated order status:", error);
     }
-  }
+  };
 
   return (
-    <AppContext.Provider value={{
-      API_URL,
-      user,
-      token,
-      authLoading,
-      authError,
-      login,
-      register,
-      logout,
-      cart,
-      cartRestaurant,
-      cartShake,
-      triggerCartShake,
-      addToCart,
-      removeFromCart,
-      updateQuantity,
-      clearCart,
-      reorderPastItems,
-      vegOnly,
-      setVegOnly,
-      sortBy,
-      setSortBy,
-      theme,
-      toggleTheme,
-      getCartSubtotal,
-      deliveryFee: getDeliveryFee(),
-      tax: getTax(),
-      getCartTotal,
-      activeOrder,
-      setActiveOrder,
-      ordersHistory,
-      placeOrder,
-      fetchOrders,
-      fetchOrderById,
-      updateOrderStatusSimulated
-    }}>
+    <AppContext.Provider
+      value={{
+        API_URL,
+        user,
+        token,
+        authLoading,
+        authError,
+        login,
+        register,
+        logout,
+        cart,
+        cartRestaurant,
+        cartShake,
+        triggerCartShake,
+        addToCart,
+        removeFromCart,
+        updateQuantity,
+        clearCart,
+        reorderPastItems,
+        vegOnly,
+        setVegOnly,
+        sortBy,
+        setSortBy,
+        theme,
+        toggleTheme,
+        getCartSubtotal,
+        deliveryFee: getDeliveryFee(),
+        tax: getTax(),
+        getCartTotal,
+        activeOrder,
+        setActiveOrder,
+        ordersHistory,
+        placeOrder,
+        fetchOrders,
+        fetchOrderById,
+        updateOrderStatusSimulated,
+      }}
+    >
       {children}
     </AppContext.Provider>
-  )
-}
+  );
+};
