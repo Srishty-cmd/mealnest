@@ -185,6 +185,7 @@ export default function Login() {
               {!isRegister && (
                 <button
                   type="button"
+                  onClick={() => navigate("/forgot-password")}
                   className="text-[10px] text-rose-500 font-extrabold hover:underline"
                 >
                   Forgot?

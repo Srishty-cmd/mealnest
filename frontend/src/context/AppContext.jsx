@@ -45,6 +45,9 @@ export const AppProvider = ({ children }) => {
   // Order & History State
   const [activeOrder, setActiveOrder] = useState(null);
   const [ordersHistory, setOrdersHistory] = useState([]);
+  const [adminUsers, setAdminUsers] = useState([]);
+  const [adminError, setAdminError] = useState("");
+  const [adminLoading, setAdminLoading] = useState(false);
 
   // Setup Axios Auth headers whenever token changes
   useEffect(() => {
@@ -102,8 +105,13 @@ export const AppProvider = ({ children }) => {
       return true;
     } catch (error) {
       setAuthLoading(false);
+      const resp = error.response?.data;
       const msg =
-        error.response?.data?.error || "Login failed. Please try again.";
+        resp?.error ||
+        resp?.message ||
+        (Array.isArray(resp?.errors) && resp.errors[0]?.msg) ||
+        (typeof resp === "string" && resp) ||
+        "Login failed. Please try again.";
       setAuthError(msg);
       return false;
     }
@@ -128,8 +136,13 @@ export const AppProvider = ({ children }) => {
       return true;
     } catch (error) {
       setAuthLoading(false);
+      const resp = error.response?.data;
       const msg =
-        error.response?.data?.error || "Registration failed. Try again.";
+        resp?.error ||
+        resp?.message ||
+        (Array.isArray(resp?.errors) && resp.errors[0]?.msg) ||
+        (typeof resp === "string" && resp) ||
+        "Registration failed. Try again.";
       setAuthError(msg);
       return false;
     }
@@ -334,6 +347,59 @@ export const AppProvider = ({ children }) => {
     }
   };
 
+  const forgotPassword = async (email) => {
+    try {
+      const response = await axios.post(`${API_URL}/auth/forgot-password`, {
+        email,
+      });
+      return response.data;
+    } catch (error) {
+      throw error.response?.data?.error || "Unable to request password reset.";
+    }
+  };
+
+  const resetPassword = async (token, password) => {
+    try {
+      const response = await axios.post(`${API_URL}/auth/reset-password`, {
+        token,
+        password,
+      });
+      return response.data;
+    } catch (error) {
+      throw error.response?.data?.error || "Unable to reset password.";
+    }
+  };
+
+  const fetchAdminUsers = async () => {
+    setAdminLoading(true);
+    setAdminError("");
+    try {
+      const response = await axios.get(`${API_URL}/auth/admin/users`);
+      setAdminUsers(response.data);
+    } catch (error) {
+      setAdminError(error.response?.data?.error || "Unable to fetch users.");
+    } finally {
+      setAdminLoading(false);
+    }
+  };
+
+  const updateUserRole = async (userId, role) => {
+    try {
+      const response = await axios.put(
+        `${API_URL}/auth/admin/user/${userId}/role`,
+        { role },
+      );
+      setAdminUsers((prevUsers) =>
+        prevUsers.map((item) =>
+          item._id === response.data._id ? response.data : item,
+        ),
+      );
+      return response.data;
+    } catch (error) {
+      throw error.response?.data?.error || "Unable to update role.";
+    }
+  };
+
   return (
     <AppContext.Provider
       value={{
@@ -371,6 +437,13 @@ export const AppProvider = ({ children }) => {
         fetchOrders,
         fetchOrderById,
         updateOrderStatusSimulated,
+        forgotPassword,
+        resetPassword,
+        adminUsers,
+        adminLoading,
+        adminError,
+        fetchAdminUsers,
+        updateUserRole,
       }}
     >
       {children}
