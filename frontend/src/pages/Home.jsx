@@ -1,7 +1,7 @@
-import { useState, useEffect } from 'react'
-import { useNavigate } from 'react-router-dom'
-import axios from 'axios'
-import { useApp } from '../context/AppContext'
+import { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
+import axios from "axios";
+import { useApp } from "../context/AppContext";
 
 export default function Home() {
   const {
@@ -18,132 +18,132 @@ export default function Home() {
     toggleTheme,
     ordersHistory,
     fetchOrders,
-    API_URL
-  } = useApp()
+    API_URL,
+  } = useApp();
 
-  const [restaurants, setRestaurants] = useState([])
-  const [loading, setLoading] = useState(true)
-  const [search, setSearch] = useState('')
-  const [selectedCategory, setSelectedCategory] = useState('All')
-  
+  const [restaurants, setRestaurants] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [search, setSearch] = useState("");
+  const [selectedCategory, setSelectedCategory] = useState("All");
+
   // Drawer & Modal Toggles
-  const [showHistory, setShowHistory] = useState(false)
-  const [showProfile, setShowProfile] = useState(false)
+  const [showHistory, setShowHistory] = useState(false);
+  const [showProfile, setShowProfile] = useState(false);
 
   // Banner Slideshow State
-  const [currentSlide, setCurrentSlide] = useState(0)
+  const [currentSlide, setCurrentSlide] = useState(0);
 
-  const navigate = useNavigate()
+  const navigate = useNavigate();
 
   // Guard routing: redirect if not logged in
   useEffect(() => {
     if (!user) {
-      navigate('/login')
+      navigate("/login");
     }
-  }, [user, navigate])
+  }, [user, navigate]);
 
   // Fetch orders history on load
   useEffect(() => {
     if (user) {
-      fetchOrders()
+      fetchOrders();
     }
-  }, [user])
+  }, [user]);
 
   // Auto Scroll Carousel
   useEffect(() => {
     const slideTimer = setInterval(() => {
-      setCurrentSlide(prev => (prev === 2 ? 0 : prev + 1))
-    }, 4500)
-    return () => clearInterval(slideTimer)
-  }, [])
+      setCurrentSlide((prev) => (prev === 2 ? 0 : prev + 1));
+    }, 4500);
+    return () => clearInterval(slideTimer);
+  }, []);
 
   // Fetch restaurants from backend based on filters
   useEffect(() => {
     const fetchRestaurants = async () => {
-      setLoading(true)
+      setLoading(true);
       try {
         const response = await axios.get(`${API_URL}/restaurants`, {
           params: {
-            category: selectedCategory === 'All' ? '' : selectedCategory.toLowerCase(),
-            search
-          }
-        })
+            category:
+              selectedCategory === "All" ? "" : selectedCategory.toLowerCase(),
+            search,
+          },
+        });
 
-        let data = response.data
+        let data = response.data;
 
         // Apply Pure Veg filter locally if active
         if (vegOnly) {
-          data = data.filter(res => res.menu.some(item => item.isVeg))
+          data = data.filter((res) => res.menu.some((item) => item.isVeg));
         }
 
         // Apply Sorting preferences
-        if (sortBy === 'rating') {
-          data = [...data].sort((a, b) => b.rating - a.rating)
-        } else if (sortBy === 'time') {
-          data = [...data].sort((a, b) => a.deliveryTime - b.deliveryTime)
-        } else if (sortBy === 'costLow') {
-          data = [...data].sort((a, b) => a.deliveryFee - b.deliveryFee)
-        } else if (sortBy === 'costHigh') {
-          data = [...data].sort((a, b) => b.deliveryFee - a.deliveryFee)
+        if (sortBy === "rating") {
+          data = [...data].sort((a, b) => b.rating - a.rating);
+        } else if (sortBy === "time") {
+          data = [...data].sort((a, b) => a.deliveryTime - b.deliveryTime);
+        } else if (sortBy === "costLow") {
+          data = [...data].sort((a, b) => a.deliveryFee - b.deliveryFee);
+        } else if (sortBy === "costHigh") {
+          data = [...data].sort((a, b) => b.deliveryFee - a.deliveryFee);
         }
 
-        setRestaurants(data)
+        setRestaurants(data);
       } catch (error) {
-        console.error('Error fetching restaurants:', error)
+        console.error("Error fetching restaurants:", error);
       } finally {
-        setLoading(false)
+        setLoading(false);
       }
-    }
+    };
 
     const delayDebounce = setTimeout(() => {
-      if (user) fetchRestaurants()
-    }, 300)
+      if (user) fetchRestaurants();
+    }, 300);
 
-    return () => clearTimeout(delayDebounce)
-  }, [selectedCategory, search, vegOnly, sortBy, user, API_URL])
+    return () => clearTimeout(delayDebounce);
+  }, [selectedCategory, search, vegOnly, sortBy, user, API_URL]);
 
   const categories = [
-    { name: 'All', emoji: '🍽️' },
-    { name: 'Pizza', emoji: '🍕' },
-    { name: 'Burgers', emoji: '🍔' },
-    { name: 'Sushi', emoji: '🍣' },
-    { name: 'Desserts', emoji: '🍩' }
-  ]
+    { name: "All", emoji: "🍽️" },
+    { name: "Pizza", emoji: "🍕" },
+    { name: "Burgers", emoji: "🍔" },
+    { name: "Sushi", emoji: "🍣" },
+    { name: "Desserts", emoji: "🍩" },
+  ];
 
   const slides = [
     {
-      title: 'Free Delivery Week!',
-      desc: 'Get absolute zero delivery cost on all standard gourmet nests.',
-      code: 'NESTFREE',
-      bg: 'from-rose-500 to-orange-500'
+      title: "Free Delivery Week!",
+      desc: "Get absolute zero delivery cost on all standard gourmet nests.",
+      code: "NESTFREE",
+      bg: "from-rose-500 to-orange-500",
     },
     {
-      title: 'Craving Sushi Platter?',
-      desc: 'Flat 50% discount on Japanese rolls at Sakura Sushi this evening.',
-      code: 'SAKURA50',
-      bg: 'from-purple-600 to-indigo-500'
+      title: "Craving Sushi Platter?",
+      desc: "Flat 50% discount on Japanese rolls at Sakura Sushi this evening.",
+      code: "SAKURA50",
+      bg: "from-purple-600 to-indigo-500",
     },
     {
-      title: 'Weekend Dessert Feast',
-      desc: 'Buy any red-velvet waffle and get free MoChis instantly.',
-      code: 'SWEETMAGIC',
-      bg: 'from-amber-500 to-pink-500'
-    }
-  ]
+      title: "Weekend Dessert Feast",
+      desc: "Buy any red-velvet waffle and get free MoChis instantly.",
+      code: "SWEETMAGIC",
+      bg: "from-amber-500 to-pink-500",
+    },
+  ];
 
   const handleReorder = (pastOrder) => {
-    reorderPastItems(pastOrder.items, pastOrder.restaurant)
-    setShowHistory(false)
-    navigate('/cart')
-  }
+    reorderPastItems(pastOrder.items, pastOrder.restaurant);
+    setShowHistory(false);
+    navigate("/cart");
+  };
 
-  if (!user) return null
+  if (!user) return null;
 
-  const cartItemsCount = cart.reduce((sum, item) => sum + item.quantity, 0)
+  const cartItemsCount = cart.reduce((sum, item) => sum + item.quantity, 0);
 
   return (
     <div className="min-h-screen bg-slate-50/50 dark:bg-slate-950 text-slate-800 dark:text-slate-100 pb-16 font-sans relative overflow-x-hidden transition-colors duration-300">
-      
       {/* Sticky Header */}
       <header className="sticky top-0 z-40 bg-white/80 dark:bg-slate-900/80 backdrop-blur-xl border-b border-slate-150 dark:border-slate-800 px-6 py-4 shadow-sm flex items-center justify-between">
         <div className="flex items-center space-x-3">
@@ -151,21 +151,24 @@ export default function Home() {
             🪺
           </div>
           <div>
-            <h1 className="text-xl font-black text-slate-800 dark:text-slate-100 tracking-tight leading-none">MealNest</h1>
-            <p className="text-[10px] text-slate-400 dark:text-slate-500 font-extrabold uppercase mt-1">Tech Corridor Nest • Bangalore</p>
+            <h1 className="text-xl font-black text-slate-800 dark:text-slate-100 tracking-tight leading-none">
+              MealNest
+            </h1>
+            <p className="text-[10px] text-slate-400 dark:text-slate-500 font-extrabold uppercase mt-1">
+              Tech Corridor Nest • Bangalore
+            </p>
           </div>
         </div>
 
         {/* Dynamic header options */}
         <div className="flex items-center space-x-3">
-          
           {/* Dual Theme Switch Button */}
           <button
             onClick={toggleTheme}
             className="p-2 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-650 dark:text-slate-300 rounded-xl transition duration-200 cursor-pointer"
             title="Toggle Theme"
           >
-            {theme === 'light' ? '🌙' : '☀️'}
+            {theme === "light" ? "🌙" : "☀️"}
           </button>
 
           {/* History Icon Trigger */}
@@ -182,9 +185,9 @@ export default function Home() {
 
           {/* Wobbling Cart Count Badge */}
           <button
-            onClick={() => cartItemsCount > 0 && navigate('/cart')}
+            onClick={() => cartItemsCount > 0 && navigate("/cart")}
             className={`p-2 bg-slate-100 dark:bg-slate-800 hover:bg-rose-50 dark:hover:bg-slate-700/50 hover:text-rose-500 text-slate-600 dark:text-slate-300 rounded-xl transition duration-200 relative cursor-pointer ${
-              cartShake ? 'animate-shake-cart' : ''
+              cartShake ? "animate-shake-cart" : ""
             }`}
             title="Shopping Cart"
           >
@@ -204,7 +207,16 @@ export default function Home() {
             👤
           </button>
 
-          <button 
+          {user?.role === "admin" && (
+            <button
+              onClick={() => navigate("/admin")}
+              className="px-3.5 py-1.5 bg-rose-500 hover:bg-rose-600 text-white text-xs font-bold rounded-xl transition duration-200 active:scale-[0.98]"
+            >
+              Admin Panel
+            </button>
+          )}
+
+          <button
             onClick={logout}
             className="px-3.5 py-1.5 bg-slate-100 dark:bg-slate-800 hover:bg-rose-50 dark:hover:bg-rose-950/40 dark:hover:text-rose-450 text-slate-600 dark:text-slate-300 text-xs font-bold rounded-xl transition duration-200 active:scale-[0.98]"
           >
@@ -215,14 +227,13 @@ export default function Home() {
 
       {/* Main descoberta */}
       <main className="max-w-7xl mx-auto px-4 md:px-8 mt-8 space-y-8 animate-fade-in">
-        
         {/* Auto Scrolling Promotional Slideshow */}
         <div className="relative w-full h-56 md:h-64 rounded-3xl overflow-hidden shadow-xl shadow-slate-200/50 dark:shadow-none">
           {slides.map((slide, idx) => (
             <div
               key={slide.title}
               className={`absolute inset-0 bg-gradient-to-r ${slide.bg} p-6 md:p-10 text-white transition-opacity duration-1000 flex flex-col justify-between ${
-                currentSlide === idx ? 'opacity-100 z-10' : 'opacity-0 z-0'
+                currentSlide === idx ? "opacity-100 z-10" : "opacity-0 z-0"
               }`}
             >
               <div className="max-w-xl space-y-3">
@@ -242,7 +253,9 @@ export default function Home() {
                 <span className="bg-black/25 border border-white/20 rounded-xl px-4 py-2 text-xs font-black tracking-widest uppercase">
                   🔑 {slide.code}
                 </span>
-                <span className="text-[10px] font-bold text-white/70">Click to auto-copy</span>
+                <span className="text-[10px] font-bold text-white/70">
+                  Click to auto-copy
+                </span>
               </div>
             </div>
           ))}
@@ -254,7 +267,7 @@ export default function Home() {
                 key={idx}
                 onClick={() => setCurrentSlide(idx)}
                 className={`w-2.5 h-2.5 rounded-full transition-all duration-300 ${
-                  currentSlide === idx ? 'bg-white w-6' : 'bg-white/40'
+                  currentSlide === idx ? "bg-white w-6" : "bg-white/40"
                 }`}
               ></button>
             ))}
@@ -263,10 +276,11 @@ export default function Home() {
 
         {/* Filter Controls Panels */}
         <div className="space-y-4">
-          
           {/* Search Panel */}
           <div className="relative max-w-lg">
-            <span className="absolute inset-y-0 left-0 pl-4 flex items-center text-slate-400">🔍</span>
+            <span className="absolute inset-y-0 left-0 pl-4 flex items-center text-slate-400">
+              🔍
+            </span>
             <input
               type="text"
               value={search}
@@ -278,46 +292,52 @@ export default function Home() {
 
           {/* Dynamic Sorting, Veg-Only row */}
           <div className="flex flex-wrap items-center gap-3.5 pt-2 text-xs">
-            
             {/* Pure Veg toggle */}
             <button
               onClick={() => setVegOnly(!vegOnly)}
               className={`flex items-center space-x-2 px-4.5 py-2.5 rounded-2xl font-black border transition select-none active:scale-[0.97] cursor-pointer ${
                 vegOnly
-                  ? 'bg-green-50 dark:bg-green-950/20 border-green-500 text-green-700 dark:text-green-400 shadow-sm'
-                  : 'bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-800 text-slate-500 dark:text-slate-400 hover:border-slate-350 dark:hover:border-slate-700'
+                  ? "bg-green-50 dark:bg-green-950/20 border-green-500 text-green-700 dark:text-green-400 shadow-sm"
+                  : "bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-800 text-slate-500 dark:text-slate-400 hover:border-slate-350 dark:hover:border-slate-700"
               }`}
             >
-              <span className={`w-3.5 h-3.5 border-2 rounded flex items-center justify-center border-green-600`}>
-                <span className={`w-1.5 h-1.5 rounded-full bg-green-600 ${vegOnly ? 'opacity-100' : 'opacity-0'}`}></span>
+              <span
+                className={`w-3.5 h-3.5 border-2 rounded flex items-center justify-center border-green-600`}
+              >
+                <span
+                  className={`w-1.5 h-1.5 rounded-full bg-green-600 ${vegOnly ? "opacity-100" : "opacity-0"}`}
+                ></span>
               </span>
               <span>Pure Veg 🟢</span>
             </button>
 
             {/* Separator */}
-            <span className="text-slate-300 dark:text-slate-800 hidden sm:block">|</span>
+            <span className="text-slate-300 dark:text-slate-800 hidden sm:block">
+              |
+            </span>
 
             {/* Sorting pill selector */}
-            <span className="text-slate-400 dark:text-slate-500 font-extrabold uppercase tracking-wide">Sort by:</span>
+            <span className="text-slate-400 dark:text-slate-500 font-extrabold uppercase tracking-wide">
+              Sort by:
+            </span>
             {[
-              { id: 'default', label: 'Recommended' },
-              { id: 'rating', label: 'Top Rated ★' },
-              { id: 'time', label: 'Fastest 🕒' },
-              { id: 'costLow', label: 'Low delivery' }
-            ].map(pill => (
+              { id: "default", label: "Recommended" },
+              { id: "rating", label: "Top Rated ★" },
+              { id: "time", label: "Fastest 🕒" },
+              { id: "costLow", label: "Low delivery" },
+            ].map((pill) => (
               <button
                 key={pill.id}
                 onClick={() => setSortBy(pill.id)}
                 className={`px-4 py-2.5 rounded-2xl font-bold border transition cursor-pointer ${
                   sortBy === pill.id
-                    ? 'bg-slate-800 dark:bg-rose-500 border-slate-800 dark:border-rose-500 text-white shadow-sm'
-                    : 'bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-800 text-slate-500 dark:text-slate-400 hover:border-slate-350 dark:hover:border-slate-700'
+                    ? "bg-slate-800 dark:bg-rose-500 border-slate-800 dark:border-rose-500 text-white shadow-sm"
+                    : "bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-800 text-slate-500 dark:text-slate-400 hover:border-slate-350 dark:hover:border-slate-700"
                 }`}
               >
                 {pill.label}
               </button>
             ))}
-
           </div>
 
           {/* Scrolling Categories Pillbar */}
@@ -328,8 +348,8 @@ export default function Home() {
                 onClick={() => setSelectedCategory(cat.name)}
                 className={`flex items-center space-x-2 px-5 py-2.5 rounded-2xl text-sm font-bold border transition duration-200 whitespace-nowrap active:scale-[0.97] cursor-pointer ${
                   selectedCategory === cat.name
-                    ? 'bg-rose-500 border-rose-500 text-white shadow-lg shadow-rose-500/25'
-                    : 'bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-800 text-slate-600 dark:text-slate-450 hover:border-slate-300 dark:hover:border-slate-700'
+                    ? "bg-rose-500 border-rose-500 text-white shadow-lg shadow-rose-500/25"
+                    : "bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-800 text-slate-600 dark:text-slate-450 hover:border-slate-300 dark:hover:border-slate-700"
                 }`}
               >
                 <span>{cat.emoji}</span>
@@ -342,7 +362,9 @@ export default function Home() {
         {/* Restaurant Section Grid */}
         <div className="space-y-4">
           <div className="flex items-center justify-between">
-            <h3 className="text-xl font-black text-slate-800 dark:text-slate-100 tracking-tight">Popular Restaurants</h3>
+            <h3 className="text-xl font-black text-slate-800 dark:text-slate-100 tracking-tight">
+              Popular Restaurants
+            </h3>
             <span className="text-xs font-bold text-rose-500 bg-rose-50 dark:bg-rose-950/50 dark:text-rose-400 px-3 py-1 rounded-full">
               {restaurants.length} nearby
             </span>
@@ -351,7 +373,10 @@ export default function Home() {
           {loading ? (
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 py-6">
               {[1, 2, 3, 4].map((i) => (
-                <div key={i} className="bg-white dark:bg-slate-900 rounded-3xl p-4 border border-slate-100 dark:border-slate-800 shadow-sm space-y-4 animate-pulse">
+                <div
+                  key={i}
+                  className="bg-white dark:bg-slate-900 rounded-3xl p-4 border border-slate-100 dark:border-slate-800 shadow-sm space-y-4 animate-pulse"
+                >
                   <div className="w-full h-44 bg-slate-200 dark:bg-slate-850 rounded-2xl"></div>
                   <div className="h-4 bg-slate-200 dark:bg-slate-850 rounded w-2/3"></div>
                   <div className="h-3 bg-slate-200 dark:bg-slate-850 rounded w-1/2"></div>
@@ -365,12 +390,20 @@ export default function Home() {
           ) : restaurants.length === 0 ? (
             <div className="text-center py-16 bg-white dark:bg-slate-900 border border-slate-100 dark:border-slate-800 shadow-sm space-y-4 max-w-md mx-auto rounded-3xl">
               <span className="text-5xl block">🥡</span>
-              <h4 className="text-lg font-black text-slate-800 dark:text-slate-100">No Nests Found</h4>
+              <h4 className="text-lg font-black text-slate-800 dark:text-slate-100">
+                No Nests Found
+              </h4>
               <p className="text-slate-400 dark:text-slate-500 text-xs px-6">
-                We couldn't find any restaurants matching your combination of search, vegetarian preference, and category filters.
+                We couldn't find any restaurants matching your combination of
+                search, vegetarian preference, and category filters.
               </p>
               <button
-                onClick={() => { setSearch(''); setSelectedCategory('All'); setVegOnly(false); setSortBy('default'); }}
+                onClick={() => {
+                  setSearch("");
+                  setSelectedCategory("All");
+                  setVegOnly(false);
+                  setSortBy("default");
+                }}
                 className="px-4 py-2 bg-rose-500 hover:bg-rose-600 text-white rounded-xl text-xs font-bold transition cursor-pointer"
               >
                 Clear Filters
@@ -412,13 +445,21 @@ export default function Home() {
 
                     <div className="flex items-center justify-between border-t border-slate-50 dark:border-slate-800 pt-3 text-xs">
                       <div className="flex items-center space-x-1.5">
-                        <span className="text-amber-500 font-bold text-sm">★</span>
-                        <span className="font-extrabold text-slate-700 dark:text-slate-200">{restaurant.rating.toFixed(1)}</span>
-                        <span className="text-slate-400 dark:text-slate-500 font-medium">({restaurant.reviewsCount})</span>
+                        <span className="text-amber-500 font-bold text-sm">
+                          ★
+                        </span>
+                        <span className="font-extrabold text-slate-700 dark:text-slate-200">
+                          {restaurant.rating.toFixed(1)}
+                        </span>
+                        <span className="text-slate-400 dark:text-slate-500 font-medium">
+                          ({restaurant.reviewsCount})
+                        </span>
                       </div>
                       <span className="text-slate-500 dark:text-slate-400 font-bold">
                         {restaurant.deliveryFee === 0 ? (
-                          <span className="text-green-500 dark:text-green-400 font-extrabold">FREE DEL</span>
+                          <span className="text-green-500 dark:text-green-400 font-extrabold">
+                            FREE DEL
+                          </span>
                         ) : (
                           `₹${restaurant.deliveryFee} delivery`
                         )}
@@ -430,7 +471,6 @@ export default function Home() {
             </div>
           )}
         </div>
-
       </main>
 
       {/* --- DRAWERS AND MODALS (REAL-WORLD PREMIUM) --- */}
@@ -439,14 +479,19 @@ export default function Home() {
       {showHistory && (
         <div className="fixed inset-0 z-50 bg-black/40 dark:bg-black/60 backdrop-blur-sm animate-fade-in flex justify-end">
           {/* Backdrop click close */}
-          <div className="flex-grow" onClick={() => setShowHistory(false)}></div>
-          
+          <div
+            className="flex-grow"
+            onClick={() => setShowHistory(false)}
+          ></div>
+
           <div className="w-full max-w-md bg-white dark:bg-slate-900 h-full shadow-2xl flex flex-col justify-between animate-slide-in-right p-6 border-l border-slate-100 dark:border-slate-800">
             <div className="space-y-6 flex-grow overflow-y-auto pr-1">
               <div className="flex items-center justify-between border-b border-slate-100 dark:border-slate-800 pb-4">
                 <div className="flex items-center space-x-2">
                   <span className="text-xl">📋</span>
-                  <h3 className="text-lg font-black text-slate-850 dark:text-slate-100">Your Past Orders</h3>
+                  <h3 className="text-lg font-black text-slate-850 dark:text-slate-100">
+                    Your Past Orders
+                  </h3>
                 </div>
                 <button
                   onClick={() => setShowHistory(false)}
@@ -459,9 +504,12 @@ export default function Home() {
               {ordersHistory.length === 0 ? (
                 <div className="text-center py-20 space-y-3">
                   <span className="text-4xl block">🥡</span>
-                  <h4 className="text-sm font-black text-slate-700 dark:text-slate-400">No Past Orders</h4>
+                  <h4 className="text-sm font-black text-slate-700 dark:text-slate-400">
+                    No Past Orders
+                  </h4>
                   <p className="text-xs text-slate-400 dark:text-slate-500 px-8">
-                    Your order history is currently empty. Order warm dishes and they will show up here.
+                    Your order history is currently empty. Order warm dishes and
+                    they will show up here.
                   </p>
                 </div>
               ) : (
@@ -474,14 +522,17 @@ export default function Home() {
                       <div className="flex items-center justify-between">
                         <div>
                           <h4 className="text-xs font-black text-slate-800 dark:text-slate-100 leading-none">
-                            {pastOrder.restaurant?.name || 'Local Kitchen'}
+                            {pastOrder.restaurant?.name || "Local Kitchen"}
                           </h4>
                           <span className="text-[10px] text-slate-450 dark:text-slate-500 mt-1 block">
-                            {new Date(pastOrder.createdAt).toLocaleDateString(undefined, {
-                              month: 'short',
-                              day: 'numeric',
-                              year: 'numeric'
-                            })}
+                            {new Date(pastOrder.createdAt).toLocaleDateString(
+                              undefined,
+                              {
+                                month: "short",
+                                day: "numeric",
+                                year: "numeric",
+                              },
+                            )}
                           </span>
                         </div>
                         <span className="bg-emerald-50 dark:bg-emerald-950/20 text-emerald-600 dark:text-emerald-450 font-extrabold text-[9px] px-2 py-0.5 rounded uppercase tracking-wider">
@@ -491,16 +542,27 @@ export default function Home() {
 
                       {/* Items Summary list */}
                       <div className="space-y-1 pl-2 border-l border-slate-200 dark:border-slate-700">
-                        {pastOrder.items.map(item => (
-                          <p key={item.itemId} className="text-[11px] text-slate-500 dark:text-slate-400 font-medium">
-                            {item.name} <span className="font-extrabold text-slate-700 dark:text-slate-200">x{item.quantity}</span>
+                        {pastOrder.items.map((item) => (
+                          <p
+                            key={item.itemId}
+                            className="text-[11px] text-slate-500 dark:text-slate-400 font-medium"
+                          >
+                            {item.name}{" "}
+                            <span className="font-extrabold text-slate-700 dark:text-slate-200">
+                              x{item.quantity}
+                            </span>
                           </p>
                         ))}
                       </div>
 
                       <div className="flex items-center justify-between border-t border-slate-100 dark:border-slate-800 pt-2.5">
-                        <span className="text-xs text-slate-450 dark:text-slate-450 font-bold">Paid: <span className="text-rose-500 font-black">₹{pastOrder.total}</span></span>
-                        
+                        <span className="text-xs text-slate-450 dark:text-slate-450 font-bold">
+                          Paid:{" "}
+                          <span className="text-rose-500 font-black">
+                            ₹{pastOrder.total}
+                          </span>
+                        </span>
+
                         <button
                           onClick={() => handleReorder(pastOrder)}
                           className="px-3.5 py-1.5 bg-rose-500 hover:bg-rose-600 text-white rounded-xl text-[10px] font-black tracking-wider uppercase transition shadow-sm active:scale-[0.96] cursor-pointer"
@@ -530,7 +592,6 @@ export default function Home() {
       {showProfile && (
         <div className="fixed inset-0 z-50 bg-black/40 dark:bg-black/60 backdrop-blur-sm animate-fade-in flex items-center justify-center p-4">
           <div className="w-full max-w-md bg-white dark:bg-slate-900 border border-slate-100 dark:border-slate-800 rounded-3xl p-6 shadow-2xl relative animate-scale-up space-y-6">
-            
             <button
               onClick={() => setShowProfile(false)}
               className="absolute top-4 right-4 w-8 h-8 rounded-full bg-slate-100 dark:bg-slate-800 hover:bg-rose-50 dark:hover:bg-slate-700 hover:text-rose-500 text-slate-600 dark:text-slate-400 flex items-center justify-center transition font-black cursor-pointer"
@@ -545,7 +606,7 @@ export default function Home() {
               </div>
               <div>
                 <h3 className="text-lg font-black text-slate-850 dark:text-slate-100 tracking-tight leading-none">
-                  {user.email.split('@')[0]}
+                  {user.email.split("@")[0]}
                 </h3>
                 <p className="text-[10px] text-slate-400 dark:text-slate-500 font-extrabold uppercase mt-1">
                   Food Enthusiast Member 🥇
@@ -556,19 +617,25 @@ export default function Home() {
             {/* Custom Foodie Stats */}
             <div className="grid grid-cols-3 gap-3 text-center">
               <div className="bg-slate-50 dark:bg-slate-950/60 rounded-2xl p-3 border border-slate-100/50 dark:border-slate-800">
-                <span className="text-xs text-slate-450 dark:text-slate-500 font-extrabold uppercase">Total Orders</span>
+                <span className="text-xs text-slate-450 dark:text-slate-500 font-extrabold uppercase">
+                  Total Orders
+                </span>
                 <span className="text-lg font-black text-slate-800 dark:text-slate-150 block mt-1">
                   {ordersHistory.length}
                 </span>
               </div>
               <div className="bg-slate-50 dark:bg-slate-950/60 rounded-2xl p-3 border border-slate-100/50 dark:border-slate-800">
-                <span className="text-xs text-slate-455 dark:text-slate-500 font-extrabold uppercase">Fav Food</span>
+                <span className="text-xs text-slate-455 dark:text-slate-500 font-extrabold uppercase">
+                  Fav Food
+                </span>
                 <span className="text-lg font-black text-rose-500 block mt-1">
                   🍕 Pizza
                 </span>
               </div>
               <div className="bg-slate-50 dark:bg-slate-950/60 rounded-2xl p-3 border border-slate-100/50 dark:border-slate-800">
-                <span className="text-xs text-slate-455 dark:text-slate-500 font-extrabold uppercase">Tier Status</span>
+                <span className="text-xs text-slate-455 dark:text-slate-500 font-extrabold uppercase">
+                  Tier Status
+                </span>
                 <span className="text-lg font-black text-amber-500 block mt-1">
                   Gold
                 </span>
@@ -577,11 +644,14 @@ export default function Home() {
 
             {/* Saved Address Book */}
             <div className="space-y-2 text-xs">
-              <h4 className="font-black text-slate-700 dark:text-slate-400 uppercase tracking-wide">Saved Delivery Nest</h4>
+              <h4 className="font-black text-slate-700 dark:text-slate-400 uppercase tracking-wide">
+                Saved Delivery Nest
+              </h4>
               <div className="p-3 bg-slate-50 dark:bg-slate-950/50 border border-slate-200/50 dark:border-slate-800 rounded-xl flex items-center space-x-2 text-slate-550 dark:text-slate-400">
                 <span>📍</span>
                 <span className="font-semibold leading-relaxed">
-                  Apartment 204, Feather Nest Heights, Sector 12, Tech Corridor, Bangalore.
+                  Apartment 204, Feather Nest Heights, Sector 12, Tech Corridor,
+                  Bangalore.
                 </span>
               </div>
             </div>
@@ -595,7 +665,6 @@ export default function Home() {
           </div>
         </div>
       )}
-
     </div>
-  )
+  );
 }
