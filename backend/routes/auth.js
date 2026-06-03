@@ -3,8 +3,11 @@ const authController = require("../controllers/authController");
 const {
   validateRegister,
   validateLogin,
+  validateForgotPassword,
+  validateResetPassword,
   handleValidationErrors,
 } = require("../validation/authValidation");
+const { authenticate, authorizeRoles } = require("../middleware/auth");
 
 // Register Route with Validation Middleware
 router.post(
@@ -20,6 +23,56 @@ router.post(
   validateLogin,
   handleValidationErrors,
   authController.login,
+);
+
+// Forgot Password Route
+router.post(
+  "/forgot-password",
+  validateForgotPassword,
+  handleValidationErrors,
+  authController.forgotPassword,
+);
+
+// Reset Password Route
+router.post(
+  "/reset-password",
+  validateResetPassword,
+  handleValidationErrors,
+  authController.resetPassword,
+);
+
+// Verify Email Route
+router.post(
+  "/verify-email",
+  (req, res, next) => {
+    // token validation handled in controller
+    next();
+  },
+  authController.verifyEmail,
+);
+
+// Resend Verification Route
+router.post(
+  "/resend-verification",
+  (req, res, next) => {
+    next();
+  },
+  authController.resendVerification,
+);
+
+// Admin-only user management
+router.get(
+  "/admin/users",
+  authenticate,
+  authorizeRoles("admin"),
+  authController.getAllUsers,
+);
+
+router.put(
+  "/admin/user/:id/role",
+  authenticate,
+  authorizeRoles("admin"),
+  authController.updateUserRole,
 );
 
 module.exports = router;

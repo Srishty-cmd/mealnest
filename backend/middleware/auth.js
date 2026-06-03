@@ -1,6 +1,6 @@
 const jwt = require("jsonwebtoken");
 
-module.exports = (req, res, next) => {
+const authenticate = (req, res, next) => {
   const authHeader = req.header("authorization");
   const token = authHeader && authHeader.split(" ")[1];
 
@@ -19,3 +19,16 @@ module.exports = (req, res, next) => {
     res.status(401).json({ error: "Invalid or expired token." });
   }
 };
+
+const authorizeRoles =
+  (...roles) =>
+  (req, res, next) => {
+    if (!req.user || !roles.includes(req.user.role)) {
+      return res
+        .status(403)
+        .json({ error: "Access denied. Insufficient permissions." });
+    }
+    next();
+  };
+
+module.exports = { authenticate, authorizeRoles };
