@@ -42,7 +42,7 @@ router.post("/", authenticate, async (req, res) => {
 });
 
 // Get active user's orders (Protected)
-router.get("/", authMiddleware, async (req, res) => {
+router.get("/", authenticate, async (req, res) => {
   try {
     const orders = await Order.find({ user: req.user.id })
       .populate("restaurant", "name image")
@@ -55,7 +55,7 @@ router.get("/", authMiddleware, async (req, res) => {
 });
 
 // Get a specific order by ID (Protected)
-router.get("/:id", authMiddleware, async (req, res) => {
+router.get("/:id", authenticate, async (req, res) => {
   try {
     const order = await Order.findById(req.params.id).populate(
       "restaurant",

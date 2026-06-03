@@ -8,12 +8,23 @@ const PORT = process.env.PORT || 5000;
 
 connectDB()
   .then(async () => {
-    await seedDatabase();
+    try {
+      await seedDatabase();
+    } catch (seedErr) {
+      console.warn(
+        "Warning: seeding database failed:",
+        seedErr.message || seedErr,
+      );
+    }
+
     app.listen(PORT, () => {
       console.log(`Server running on port ${PORT}`);
     });
   })
   .catch((err) => {
-    console.error("Failed to start server:", err.message);
-    process.exit(1);
+    console.error("MongoDB connection failed:", err.message);
+    console.warn("Starting server without DB connection (degraded mode).");
+    app.listen(PORT, () => {
+      console.log(`Server running on port ${PORT} (DB not connected)`);
+    });
   });

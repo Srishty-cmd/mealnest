@@ -41,6 +41,25 @@ router.post(
   authController.resetPassword,
 );
 
+// Verify Email Route
+router.post(
+  "/verify-email",
+  (req, res, next) => {
+    // token validation handled in controller
+    next();
+  },
+  authController.verifyEmail,
+);
+
+// Resend Verification Route
+router.post(
+  "/resend-verification",
+  (req, res, next) => {
+    next();
+  },
+  authController.resendVerification,
+);
+
 // Admin-only user management
 router.get(
   "/admin/users",
