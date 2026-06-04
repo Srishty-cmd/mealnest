@@ -43,19 +43,6 @@ const getTransporter = () => {
   };
 };
 
-const sendVerificationEmail = async (user, token) => {
-  const transporter = getTransporter();
-  const verifyUrl = `${FRONTEND_URL}/verify-email?token=${token}`;
-  const mailOptions = {
-    from: process.env.EMAIL_FROM || "no-reply@mealnest.local",
-    to: user.email,
-    subject: "Verify your MealNest account",
-    text: `Verify your account: ${verifyUrl}`,
-    html: `<p>Please verify your account by clicking <a href="${verifyUrl}">this link</a>.</p>`,
-  };
-  await transporter.sendMail(mailOptions);
-};
-
 const sendResetEmail = async (user, token) => {
   const transporter = getTransporter();
   const resetUrl = `${FRONTEND_URL}/reset-password?token=${token}`;
@@ -81,30 +68,20 @@ exports.register = async (req, res, next) => {
       phone,
       password: hash,
       role: "user",
-      isVerified: false,
+      isVerified: true,
     });
 
-    // Generate verification token
-    const verificationToken = crypto.randomBytes(20).toString("hex");
-    user.verificationToken = crypto
-      .createHash("sha256")
-      .update(verificationToken)
-      .digest("hex");
-    user.verificationExpire = Date.now() + 3600000; // 1 hour
-    await user.save({ validateBeforeSave: false });
-
-    // Send verification email
-    try {
-      await sendVerificationEmail(user, verificationToken);
-    } catch (mailErr) {
-      console.warn(
-        "Failed to send verification email:",
-        mailErr.message || mailErr,
-      );
-    }
+    const token = generateToken(user);
 
     res.status(201).json({
-      message: "User registered. Verification email sent.",
+      token,
+      user: {
+        id: user._id,
+        name: user.name,
+        email: user.email,
+        phone: user.phone,
+        role: user.role,
+      },
     });
   } catch (error) {
     console.error("Registration error:", error);
@@ -121,15 +98,6 @@ exports.login = async (req, res, next) => {
       return res
         .status(400)
         .json({ error: "User with this email does not exist" });
-    }
-
-    if (!user.isVerified) {
-      return res
-        .status(401)
-        .json({
-          error:
-            "Email not verified. Please verify your email before logging in.",
-        });
     }
 
     const isMatch = await bcrypt.compare(password, user.password);
