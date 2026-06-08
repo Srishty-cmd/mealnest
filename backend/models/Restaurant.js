@@ -20,6 +20,7 @@ const RestaurantSchema = new mongoose.Schema({
   reviewsCount: { type: Number, default: 100 },
   deliveryTime: { type: Number, default: 30 }, // in minutes
   deliveryFee: { type: Number, default: 0 },
+
   cuisine: { type: String, required: true }, // e.g. "Italian, Pizza"
   category: { type: String, required: true }, // pizza, burgers, sushi, desserts, asian
   isFeatured: { type: Boolean, default: false },
