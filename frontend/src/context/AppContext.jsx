@@ -1,5 +1,6 @@
 import { createContext, useContext, useState, useEffect } from "react";
 import axios from "axios";
+import { io } from "socket.io-client";
 
 const AppContext = createContext();
 
@@ -48,6 +49,36 @@ export const AppProvider = ({ children }) => {
   const [adminUsers, setAdminUsers] = useState([]);
   const [adminError, setAdminError] = useState("");
   const [adminLoading, setAdminLoading] = useState(false);
+
+  // Socket.IO State
+  const [socket, setSocket] = useState(null);
+
+  // Merchant States
+  const [merchantRestaurant, setMerchantRestaurant] = useState(null);
+  const [merchantStats, setMerchantStats] = useState(null);
+  const [merchantAnalytics, setMerchantAnalytics] = useState(null);
+  const [merchantMenu, setMerchantMenu] = useState([]);
+  const [merchantOrders, setMerchantOrders] = useState([]);
+  const [merchantLoading, setMerchantLoading] = useState(false);
+  const [merchantError, setMerchantError] = useState("");
+
+  // Setup Socket connection when token changes
+  useEffect(() => {
+    if (token) {
+      const newSocket = io("http://localhost:5000");
+      setSocket(newSocket);
+      console.log("Socket connection established.");
+      return () => {
+        newSocket.close();
+        console.log("Socket connection closed.");
+      };
+    } else {
+      if (socket) {
+        socket.close();
+        setSocket(null);
+      }
+    }
+  }, [token]);
 
   // Setup Axios Auth headers whenever token changes
   useEffect(() => {
@@ -289,7 +320,7 @@ export const AppProvider = ({ children }) => {
   };
 
   // Orders API
-  const placeOrder = async (address, paymentMethod) => {
+  const placeOrder = async (address, paymentMethod, paymentDetails = {}) => {
     try {
       if (!user) throw new Error("Must be logged in to order");
       const orderPayload = {
@@ -301,6 +332,7 @@ export const AppProvider = ({ children }) => {
         total: getCartTotal(),
         address,
         paymentMethod,
+        ...paymentDetails
       };
 
       const response = await axios.post(`${API_URL}/orders`, orderPayload);
@@ -400,6 +432,110 @@ export const AppProvider = ({ children }) => {
     }
   };
 
+  const fetchProfile = async () => {
+    try {
+      const response = await axios.get(`${API_URL}/auth/profile`);
+      setUser(response.data);
+      localStorage.setItem("user", JSON.stringify(response.data));
+      return response.data;
+    } catch (error) {
+      console.error("Failed fetching user profile:", error);
+    }
+  };
+
+  const fetchMerchantStats = async () => {
+    setMerchantLoading(true);
+    setMerchantError("");
+    try {
+      const response = await axios.get(`${API_URL}/merchant/stats`);
+      setMerchantRestaurant(response.data.restaurant);
+      setMerchantStats(response.data.stats);
+      setMerchantOrders(response.data.recentOrders);
+      return response.data;
+    } catch (error) {
+      setMerchantError(error.response?.data?.error || "Failed to fetch merchant stats.");
+    } finally {
+      setMerchantLoading(false);
+    }
+  };
+
+  const fetchMerchantAnalytics = async () => {
+    setMerchantLoading(true);
+    setMerchantError("");
+    try {
+      const response = await axios.get(`${API_URL}/merchant/analytics`);
+      setMerchantAnalytics(response.data);
+      return response.data;
+    } catch (error) {
+      setMerchantError(error.response?.data?.error || "Failed to fetch merchant analytics.");
+    } finally {
+      setMerchantLoading(false);
+    }
+  };
+
+  const fetchMerchantMenu = async () => {
+    setMerchantLoading(true);
+    setMerchantError("");
+    try {
+      const response = await axios.get(`${API_URL}/merchant/menu`);
+      setMerchantMenu(response.data);
+      return response.data;
+    } catch (error) {
+      setMerchantError(error.response?.data?.error || "Failed to fetch merchant menu.");
+    } finally {
+      setMerchantLoading(false);
+    }
+  };
+
+  const addMenuItem = async (itemData) => {
+    try {
+      const response = await axios.post(`${API_URL}/merchant/menu`, itemData);
+      setMerchantMenu(prev => [...prev, response.data]);
+      return response.data;
+    } catch (error) {
+      throw error.response?.data?.error || "Failed to add menu item.";
+    }
+  };
+
+  const editMenuItem = async (itemId, itemData) => {
+    try {
+      const response = await axios.put(`${API_URL}/merchant/menu/${itemId}`, itemData);
+      setMerchantMenu(prev => prev.map(item => item._id === itemId ? response.data : item));
+      return response.data;
+    } catch (error) {
+      throw error.response?.data?.error || "Failed to edit menu item.";
+    }
+  };
+
+  const deleteMenuItem = async (itemId) => {
+    try {
+      await axios.delete(`${API_URL}/merchant/menu/${itemId}`);
+      setMerchantMenu(prev => prev.filter(item => item._id !== itemId));
+    } catch (error) {
+      throw error.response?.data?.error || "Failed to delete menu item.";
+    }
+  };
+
+  const toggleMenuItemAvailability = async (itemId) => {
+    try {
+      const response = await axios.put(`${API_URL}/merchant/menu/${itemId}/toggle`);
+      setMerchantMenu(prev => prev.map(item => item._id === itemId ? response.data : item));
+      return response.data;
+    } catch (error) {
+      throw error.response?.data?.error || "Failed to toggle item availability.";
+    }
+  };
+
+  const updateOrderStatusMerchant = async (orderId, status) => {
+    try {
+      const response = await axios.put(`${API_URL}/orders/${orderId}/status`, { status });
+      setMerchantOrders(prev => prev.map(order => order._id === orderId ? { ...order, status } : order));
+      return response.data;
+    } catch (error) {
+      throw error.response?.data?.error || "Failed to update order status.";
+    }
+  };
+
   return (
     <AppContext.Provider
       value={{
@@ -444,6 +580,23 @@ export const AppProvider = ({ children }) => {
         adminError,
         fetchAdminUsers,
         updateUserRole,
+        socket,
+        merchantRestaurant,
+        merchantStats,
+        merchantAnalytics,
+        merchantMenu,
+        merchantOrders,
+        merchantLoading,
+        merchantError,
+        fetchProfile,
+        fetchMerchantStats,
+        fetchMerchantAnalytics,
+        fetchMerchantMenu,
+        addMenuItem,
+        editMenuItem,
+        deleteMenuItem,
+        toggleMenuItemAvailability,
+        updateOrderStatusMerchant,
       }}
     >
       {children}
